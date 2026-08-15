@@ -2,6 +2,7 @@ package embedding
 
 import (
 	"com.wyq.01rag/domain/model/document"
+	"com.wyq.01rag/domain/model/store"
 )
 
 // 嵌入的模型设计
@@ -23,6 +24,10 @@ type EmbeddingModelConfig struct {
 
 type EmbeddingContext struct {
 
+	// 生成的文档名称数据
+
+	DocumentName string
+
 	// 需要打开的文件数据
 
 	File []*document.File
@@ -38,6 +43,15 @@ type EmbeddingContext struct {
 
 	// 生成的嵌入式向量
 	Vectors []*EmbeddingVector
+
+	// 保存到chromaDB当中的葫记录数量
+	Records []*store.VectorRecord
+
+	// 输入参数
+	StoreType string
+
+	// 存储数据类型
+	store.VectorStore
 
 	IsStop bool
 

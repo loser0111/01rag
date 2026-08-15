@@ -10,7 +10,7 @@ import (
 type ModelEmbeddingHandler struct {
 }
 
-func (h *ModelEmbeddingHandler) Handle(ctx context.Context, embeddingCtx embedding.EmbeddingContext) error {
+func (h *ModelEmbeddingHandler) Handle(ctx context.Context, embeddingCtx *embedding.EmbeddingContext) error {
 	if err := Check(ctx, embeddingCtx); err != nil {
 		embeddingCtx.Stop(err)
 		return err
@@ -32,7 +32,7 @@ func (h *ModelEmbeddingHandler) Handle(ctx context.Context, embeddingCtx embeddi
 	return nil
 }
 
-func Check(ctx context.Context, embeddingCtx embedding.EmbeddingContext) error {
+func Check(ctx context.Context, embeddingCtx *embedding.EmbeddingContext) error {
 	var err error = nil
 	if len(embeddingCtx.Chunks) == 0 {
 		err = errors.New("not find Valid Chunks to embedding")

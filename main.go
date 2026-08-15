@@ -16,5 +16,6 @@ func main() {
 	fmt.Println("============TEST=============")
 	// test.TestEmbedding(nil)
 
-	test.TestChromaStorage(nil)
+	// test.TestChromaStorage(nil)
+	test.TestEmbeddingFlow(nil)
 }

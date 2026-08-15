@@ -9,5 +9,5 @@ import (
 
 type EmbeddingHandler interface {
 	Name() string
-	Handle(ctx context.Context, embeddingCtx embedding.EmbeddingContext) error
+	Handle(ctx context.Context, embeddingCtx *embedding.EmbeddingContext) error
 }

@@ -10,7 +10,7 @@ import (
 type ReadFileHandler struct {
 }
 
-func (h *ReadFileHandler) Handle(ctx context.Context, embeddingCtx embedding.EmbeddingContext) error {
+func (h *ReadFileHandler) Handle(ctx context.Context, embeddingCtx *embedding.EmbeddingContext) error {
 	var chunks = make([]*document.Chunk, 0)
 	fileReader := embeddingCtx.FileReader
 	for _, fileName := range embeddingCtx.File {
