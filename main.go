@@ -14,5 +14,7 @@ func main() {
 	fmt.Println("01RAG")
 
 	fmt.Println("============TEST=============")
-	test.TestEmbedding(nil)
+	// test.TestEmbedding(nil)
+
+	test.TestChromaStorage(nil)
 }
