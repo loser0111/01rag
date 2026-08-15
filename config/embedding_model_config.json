@@ -1,0 +1,8 @@
+[
+  {
+    "type": "OLLAMA_LOCAL",
+    "model":"qwen3-embedding:0.6b",
+    "url": "http://127.0.0.1:11434/api/embeddings",
+    "api_key": ""
+  }
+]
