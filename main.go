@@ -60,7 +60,7 @@ func main() {
 	}
 	fmt.Printf("[Query OK] hits=%d\n", len(results))
 	for i, r := range results {
-		txt := r.Text
+		txt := r.Doc
 		if len(txt) > 100 {
 			txt = txt[:100]
 		}

@@ -5,6 +5,7 @@
 package query
 
 import (
+	"com.wyq.01rag/domain/model/rerank"
 	"context"
 	"errors"
 	"fmt"
@@ -30,27 +31,20 @@ type SearchInput struct {
 type UseCase struct {
 	embedders port.EmbedderRegistry
 	stores    port.VectorStoreRegistry
+	reranker  port.ReRanker
 }
 
 func NewQueryUseCase(
 	embedders port.EmbedderRegistry,
 	stores port.VectorStoreRegistry,
+	reranker port.ReRanker,
 ) *UseCase {
 	return &UseCase{embedders: embedders, stores: stores}
 }
 
-func (uc *UseCase) Execute(ctx context.Context, input SearchInput) ([]store.SearchResult, error) {
-	if input.Question == "" {
-		return nil, errors.New("question is required")
-	}
-	if input.CollName == "" {
-		return nil, errors.New("collection name is required")
-	}
-	if input.EmbedderName == "" {
-		return nil, errors.New("embedderName is required")
-	}
-	if input.VectorStore == "" {
-		return nil, errors.New("vectorStore is required")
+func (uc *UseCase) Execute(ctx context.Context, input SearchInput) ([]*rerank.RankItem, error) {
+	if er := uc.validateSearchInput(input); er != nil {
+		return nil, er
 	}
 	topK := input.TopK
 	if topK <= 0 {
@@ -71,9 +65,36 @@ func (uc *UseCase) Execute(ctx context.Context, input SearchInput) ([]store.Sear
 		return nil, fmt.Errorf("embed question: %w", err)
 	}
 
-	return searcher.SimilaritySearch(ctx, input.CollName, utils.ConvertFloat64ToFloat32(qVec.Vector), store.SearchOption{
+	searchResult, err := searcher.SimilaritySearch(ctx, input.CollName, utils.ConvertFloat64ToFloat32(qVec.Vector), store.SearchOption{
 		TopK:     topK,
 		MinScore: input.MinScore,
 		Filter:   input.Filter,
 	})
+	if err != nil {
+		return nil, fmt.Errorf("search: %w", err)
+	}
+
+	// 执行reRank
+	docs := make([]string, 0)
+	for _, SearchResult := range searchResult {
+		docs = append(docs, SearchResult.Text)
+	}
+	rankItems, err := uc.reranker.Rerank(ctx, input.Question, docs, input.TopK)
+
+	return rankItems, nil
+}
+func (uc *UseCase) validateSearchInput(input SearchInput) error {
+	if input.Question == "" {
+		return errors.New("question is required")
+	}
+	if input.CollName == "" {
+		return errors.New("collection name is required")
+	}
+	if input.EmbedderName == "" {
+		return errors.New("embedderName is required")
+	}
+	if input.VectorStore == "" {
+		return errors.New("vectorStore is required")
+	}
+	return nil
 }

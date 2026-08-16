@@ -15,6 +15,7 @@ import (
 	"com.wyq.01rag/application/query"
 	"com.wyq.01rag/domain/port"
 	infra_embed "com.wyq.01rag/infra/model/embedding"
+	infra_rerank "com.wyq.01rag/infra/rerank"
 	infra_store "com.wyq.01rag/infra/storage/manager"
 	"com.wyq.01rag/internal/config"
 )
@@ -44,9 +45,12 @@ func Bootstrap(cfg *config.AppConfig) (*App, error) {
 	// 2) Vector Store Registry
 	storeMgr := infra_store.NewStorageManager(cfg.Chroma)
 
-	// 3) Application UseCases
+	// 3) Vector Store Registry
+	rerankMgr := infra_rerank.NewLocalReranker("localhost:8001", "")
+
+	// 4) Application UseCases
 	ingestUC := ingest.NewIngestUseCase(embMgr, storeMgr)
-	queryUC := query.NewQueryUseCase(embMgr, storeMgr)
+	queryUC := query.NewQueryUseCase(embMgr, storeMgr, rerankMgr)
 
 	return &App{
 		Cfg:       cfg,

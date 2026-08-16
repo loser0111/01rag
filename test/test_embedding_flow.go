@@ -1,6 +1,7 @@
 package test
 
 import (
+	"com.wyq.01rag/domain/model/rerank"
 	"context"
 	"fmt"
 	"log"
@@ -61,7 +62,7 @@ func TestIngestFlow_New(t *testing.T) {
 	}
 	fmt.Printf("[query ok] hits=%d\n", len(results))
 	for i, r := range results {
-		txt := r.Text
+		txt := r.Doc
 		if len(txt) > 80 {
 			txt = txt[:80]
 		}
@@ -78,7 +79,7 @@ func DemoQuery_New(
 	collName string,
 	question string,
 	_ []store.SearchOption, // 保留命名兼容旧外部调用；SearchOption 字段直接映射到 query.SearchInput
-) ([]store.SearchResult, error) {
+) ([]*rerank.RankItem, error) {
 	app_, err := app.BootstrapFromEnv()
 	if err != nil {
 		return nil, err
