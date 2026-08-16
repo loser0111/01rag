@@ -20,6 +20,41 @@ import (
 
 var ChromaVectorStorageApp store.VectorStore
 
+// DistanceSpace 距离空间类型（决定 score 归一化公式）
+type DistanceSpace string
+
+const (
+	DistanceSpaceL2     DistanceSpace = "l2"
+	DistanceSpaceCosine DistanceSpace = "cosine"
+	DistanceSpaceIP     DistanceSpace = "ip"
+)
+
+// ScoreNormalizer 将 chroma 返回的原始 distance → 归一化 score (越大越相似)
+type ScoreNormalizer func(rawDistance float64) float64
+
+var (
+	// L2Normalizer 欧氏距离 (d ∈ [0, +∞)) → score ∈ (0,1]，精确匹配时=1
+	L2Normalizer ScoreNormalizer = func(d float64) float64 { return 1.0 / (1.0 + d) }
+	// CosineNormalizer 余弦距离 (d ∈ [0, 2]) → 余弦相似度 ∈ [-1,1]
+	CosineNormalizer ScoreNormalizer = func(d float64) float64 { return 1.0 - d }
+	// IPNormalizer 内积空间（Chroma 返回的 raw 已经是 -dot，距离越小=点积越大）→ score=-d
+	IPNormalizer ScoreNormalizer = func(d float64) float64 { return -d }
+)
+
+// ResolveScoreNormalizer 根据空间类型返回归一化函数；未知/空时按 L2 保守处理
+func ResolveScoreNormalizer(space DistanceSpace) ScoreNormalizer {
+	switch space {
+	case DistanceSpaceCosine:
+		return CosineNormalizer
+	case DistanceSpaceIP:
+		return IPNormalizer
+	case DistanceSpaceL2, "":
+		return L2Normalizer
+	default:
+		return L2Normalizer
+	}
+}
+
 type ChromaVectorStorage struct {
 	Url        string
 	HttpClient *http.Client
@@ -27,6 +62,9 @@ type ChromaVectorStorage struct {
 	Database   string
 	ApiKey     string
 	Name2Id    sync.Map
+	// Space 距离空间：L2 / cosine / ip，用来选择 score 归一化公式
+	Space          DistanceSpace
+	scoreNormalize ScoreNormalizer
 }
 
 // ====== 内部响应/请求结构体（按 chroma_api_file.json 定义） ======
@@ -82,17 +120,44 @@ type ErrorResponse struct {
 
 // ====== 初始化 ======
 
-func init() {
-	fmt.Println("chroma DB init")
-	ChromaVectorStorageApp = &ChromaVectorStorage{
-		Url: "http://127.0.0.1:8000/api/v2",
+// NewChromaVectorStorage 显式构造函数（依赖注入），空间类型缺省为 L2
+func NewChromaVectorStorage(
+	url string,
+	tenant string,
+	database string,
+	apiKey string,
+	space DistanceSpace,
+) *ChromaVectorStorage {
+	if url == "" {
+		url = "http://127.0.0.1:8000/api/v2"
+	}
+	if tenant == "" {
+		tenant = constant.DefaultChromaTenantName
+	}
+	if database == "" {
+		database = constant.DefaultChromaDataBaseName
+	}
+	if space == "" {
+		space = DistanceSpaceL2
+	}
+	return &ChromaVectorStorage{
+		Url: url,
 		HttpClient: &http.Client{
 			Timeout: 30 * time.Second,
 		},
-		Tenant:   constant.DefaultChromaTenantName,
-		Database: constant.DefaultChromaDataBaseName,
-		ApiKey:   "",
+		Tenant:         tenant,
+		Database:       database,
+		ApiKey:         apiKey,
+		Space:          space,
+		scoreNormalize: ResolveScoreNormalizer(space),
+		Name2Id:        sync.Map{},
 	}
+}
+
+// init 保留默认单例以兼容旧调用（不再 panic，启动时默认值不保证可连通）
+func init() {
+	fmt.Println("chroma DB init (compat singleton)")
+	ChromaVectorStorageApp = NewChromaVectorStorage("", "", "", "", DistanceSpaceL2)
 }
 
 // ====== 内部辅助方法 ======
@@ -372,9 +437,8 @@ func (c *ChromaVectorStorage) SimilaritySearch(
 		if i < len(distBatch) {
 			distance = distBatch[i]
 		}
-		// Chroma distance: Cosine Distance (0~2)
-		// 转换为余弦相似度 score = 1 - distance
-		score := 1.0 - distance
+		// 按距离空间归一化 score（当前实例 Space 决定，缺省 L2 → 1/(1+d)）
+		score := c.scoreNormalize(distance)
 
 		if opt.MinScore > 0 && score < opt.MinScore {
 			continue

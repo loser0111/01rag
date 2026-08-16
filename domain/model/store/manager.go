@@ -1,5 +1,5 @@
 package store
 
 type StorageManager interface {
-	GetStoreRageByName(Name string) VectorStore
+	GetStoreByName(Name string) VectorStore
 }

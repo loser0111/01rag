@@ -5,34 +5,32 @@ import (
 	"com.wyq.01rag/domain/model/store"
 )
 
-// 嵌入的模型设计
-
-// 嵌入向量
-
+// EmbeddingVector 嵌入向量：每一条 chunk 与其 embedding 结果的绑定关系
 type EmbeddingVector struct {
 	Vector []float64
 	Chunk  *document.Chunk
 	ID     string
 }
 
-// 嵌入模型设置
-
+// EmbeddingModelConfig 【Legacy 占位】 具体配置迁移到 internal/config.AppConfig。
+// 保留此类型仅为兼容外部可能的引用。
 type EmbeddingModelConfig struct {
 }
 
-// 执行嵌入流程的上下文
-
+// EmbeddingContext 【Legacy】旧 pipeline 传递的上下文。
+//
+// ⚠️ DDD 新路径（application/ingest / application/query）不再使用该上下文。
+// 新代码请直接调用 IngestUseCase / QueryUseCase，每个步骤间通过显式参数传递数据。
 type EmbeddingContext struct {
 
 	// 生成的文档名称数据
-
 	DocumentName string
 
 	// 需要打开的文件数据
-
 	File []*document.File
 
-	// 读取文件的数据
+	// 【Deprecated】读取文件的组件；DDD 新路径通过 IngestInput.SourceReader 注入。
+	// 旧 handler 为兼容仍读取此字段，新代码不要依赖。
 	FileReader document.IFileReader
 
 	// Chunks
@@ -44,14 +42,15 @@ type EmbeddingContext struct {
 	// 生成的嵌入式向量
 	Vectors []*EmbeddingVector
 
-	// 保存到chromaDB当中的葫记录数量
+	// 保存到向量库当中的记录
 	Records []*store.VectorRecord
 
 	// 输入参数
 	StoreType string
 
-	// 存储数据类型
-	store.VectorStore
+	// 【Deprecated】向量存储组件；DDD 新路径通过 VectorStoreRegistry + use case 注入。
+	// 旧 StoreVectorHandler 仍会设置此字段。
+	VectorStore store.VectorStore
 
 	IsStop bool
 

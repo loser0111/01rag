@@ -13,7 +13,7 @@ import (
 )
 
 func TestEmbedding(t *testing.T) {
-	embeddingModel := embedding.EmbeddingManagerApp.FindByName("qwen3-embedding:0.6b")
+	embeddingModel := embedding.EmbeddingManagerApp.LegacyFindByName("qwen3-embedding:0.6b")
 	chunks := []*document.Chunk{
 		&document.Chunk{
 			Data: "这是一段文字",
@@ -29,7 +29,7 @@ func TestEmbedding(t *testing.T) {
 }
 
 func TestChromaStorage(t *testing.T) {
-	embeddingModel := embedding.EmbeddingManagerApp.FindByName("qwen3-embedding:0.6b")
+	embeddingModel := embedding.EmbeddingManagerApp.LegacyFindByName("qwen3-embedding:0.6b")
 	chunks := []*document.Chunk{
 		&document.Chunk{
 			Data: "我的名字叫王永庆",

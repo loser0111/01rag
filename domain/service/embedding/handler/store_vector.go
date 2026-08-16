@@ -26,7 +26,7 @@ func (h *StoreVectorHandler) Handle(ctx context.Context, embeddingCtx *embedding
 	}
 	embeddingCtx.Records = records
 
-	embeddingCtx.VectorStore = manager.StorageManagerApp.GetStoreRageByName(embeddingCtx.StoreType)
+	embeddingCtx.VectorStore = manager.StorageManagerApp.GetStoreByName(embeddingCtx.StoreType)
 
 	err := embeddingCtx.VectorStore.AddDocuments(ctx, embeddingCtx.DocumentName, embeddingCtx.Records)
 	embeddingCtx.Stop(err)

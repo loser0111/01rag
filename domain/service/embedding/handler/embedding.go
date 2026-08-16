@@ -17,7 +17,7 @@ func (h *ModelEmbeddingHandler) Handle(ctx context.Context, embeddingCtx *embedd
 	}
 
 	// 调用模型
-	embeddingModel := infra_embedding.EmbeddingManagerApp.FindByName(embeddingCtx.EmbeddingModelName)
+	embeddingModel := infra_embedding.EmbeddingManagerApp.LegacyFindByName(embeddingCtx.EmbeddingModelName)
 	if embeddingModel == nil {
 		embeddingCtx.Stop(errors.New("model not found"))
 		return embeddingCtx.Error
