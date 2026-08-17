@@ -5,6 +5,7 @@ import (
 	"com.wyq.01rag/domain/model/rerank"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -24,16 +25,19 @@ func NewLocalReranker(url, model string) *LocalReranker {
 
 func (ranker *LocalReranker) Rerank(ctx context.Context, query string, docs []string, topN int) ([]*rerank.RankItem, error) {
 	req := &RerankRequest{
-		Model:     ranker.Model,
-		Query:     query,
-		Documents: docs,
-		TopN:      topN,
+		Model:           ranker.Model,
+		Query:           query,
+		Documents:       docs,
+		TopN:            topN,
+		ReturnDocuments: true,
 	}
 	reqBody, err := json.Marshal(req)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
+	fmt.Println(string(reqBody))
+	fmt.Println()
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, ranker.Url, bytes.NewReader(reqBody))
 	if err != nil {
 		log.Println(err)
@@ -48,6 +52,7 @@ func (ranker *LocalReranker) Rerank(ctx context.Context, query string, docs []st
 	buf, _ := io.ReadAll(httpResp.Body)
 	var reRankResp RerankResponse
 	_ = json.Unmarshal(buf, &reRankResp)
+	fmt.Printf("%s\n", string(buf))
 
 	return Convert2RankItem(reRankResp.Results), nil
 }
@@ -61,6 +66,7 @@ func Convert2RankItem(results []*RerankResult) []*rerank.RankItem {
 		rankItems[i] = &rerank.RankItem{
 			Index: result.Index,
 			Score: result.RelevanceScore,
+			Doc:   result.Document,
 		}
 	}
 	return rankItems

@@ -39,7 +39,7 @@ func NewQueryUseCase(
 	stores port.VectorStoreRegistry,
 	reranker port.ReRanker,
 ) *UseCase {
-	return &UseCase{embedders: embedders, stores: stores}
+	return &UseCase{embedders: embedders, stores: stores, reranker: reranker}
 }
 
 func (uc *UseCase) Execute(ctx context.Context, input SearchInput) ([]*rerank.RankItem, error) {
@@ -76,8 +76,10 @@ func (uc *UseCase) Execute(ctx context.Context, input SearchInput) ([]*rerank.Ra
 
 	// 执行reRank
 	docs := make([]string, 0)
+	docMap := make(map[string]*store.SearchResult)
 	for _, SearchResult := range searchResult {
 		docs = append(docs, SearchResult.Text)
+		docMap[SearchResult.Text] = &SearchResult
 	}
 	rankItems, err := uc.reranker.Rerank(ctx, input.Question, docs, input.TopK)
 

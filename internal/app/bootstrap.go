@@ -46,7 +46,7 @@ func Bootstrap(cfg *config.AppConfig) (*App, error) {
 	storeMgr := infra_store.NewStorageManager(cfg.Chroma)
 
 	// 3) Vector Store Registry
-	rerankMgr := infra_rerank.NewLocalReranker("localhost:8001", "")
+	rerankMgr := infra_rerank.NewLocalReranker("http://localhost:8001/rerank", "BAAI/bge-reranker-v2-m3")
 
 	// 4) Application UseCases
 	ingestUC := ingest.NewIngestUseCase(embMgr, storeMgr)

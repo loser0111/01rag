@@ -40,12 +40,12 @@ func main() {
 		VectorStore:   "chroma",
 		MetadataPatch: map[string]any{"source": "main_demo"},
 	}
-	out, err := app_.Ingest.Execute(ctx, in)
-	if err != nil {
-		log.Fatalf("Ingest 失败: %v", err)
-	}
-	fmt.Printf("[Ingest OK] doc=%s chunks=%d vectors=%d dim=%d\n",
-		out.DocumentName, out.ChunksCount, out.VectorsCount, out.VectorDim)
+	//out, err := app_.Ingest.Execute(ctx, in)
+	//if err != nil {
+	//	log.Fatalf("Ingest 失败: %v", err)
+	//}
+	//fmt.Printf("[Ingest OK] doc=%s chunks=%d vectors=%d dim=%d\n",
+	//	out.DocumentName, out.ChunksCount, out.VectorsCount, out.VectorDim)
 
 	results, err := app_.Query.Execute(ctx, query.SearchInput{
 		Question:     "什么是 RAG",

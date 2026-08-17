@@ -12,9 +12,9 @@ type RerankTokens struct {
 	InputTokens int `json:"input_tokens"`
 }
 type RerankResult struct {
-	Index          int            `json:"index"`
-	RelevanceScore float64        `json:"relevance_score"`
-	Document       map[string]any `json:"document"`
+	Index          int     `json:"index"`
+	RelevanceScore float64 `json:"relevance_score"`
+	Document       string  `json:"document"`
 }
 type RerankMeta struct {
 	Model  string       `json:"model"`
